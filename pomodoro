@@ -1,0 +1,110 @@
+#!/bin/bash
+
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No color
+
+wait () {
+        local time=0
+        while [[ "$time" -ne "$1" ]]; do
+                sleep 1m
+		clear
+                time=$((time + 1))
+		if [[ "$2" == pomodoro ]]; then
+        		echo "Pomodoro started"
+			echo -e "${BLUE}Reminder: $reminder${NC}"
+		elif [[ "$2" == break ]]; then
+        		echo "Rest started"
+		fi
+		echo "Remain: $(($1-time)) minutes"
+        done
+}
+
+startPomodoro () {
+	clear
+        echo "Pomodoro started"
+	echo -e "${BLUE}Reminder: $reminder${NC}"
+        wait 25 pomodoro
+	clear
+        pomodoro=$((pomodoro + 1))
+        workedMinutes=$((workedMinutes + 25))
+	perl -p -i -e "s/^\d{1,4}(?=\^\d{4}-\d{2}-\d{2}$)/$workedMinutes/" ~/bin/pomodoroData
+        echo "Pomodoro ended"
+        mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
+	reminder=""
+	while [[ ! "$reminder" =~ ^.{5,}$ ]]; do
+		read -p "Please enter a reminder and press enter -> " reminder
+		if [[ "$reminder" =~ \^ ]]; then
+			reminder=""
+			echo -e "${RED}Can't insert ^${NC}"
+			sleep 3
+		fi
+	done
+	clear
+	reminder="$(echo "$reminder" | perl -p -e 's/\//\\\//g')"
+	sed -i "2s/.*/$reminder/" ~/bin/pomodoroData
+        kill $!
+}
+
+startBreak () {
+        echo "Rest started"
+        wait 5 break
+	clear
+        echo "Break ended"
+        mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
+        read -p "Press enter to continue -> "
+        kill $!
+}
+
+startLongBreak () {
+        echo "Long rest started" 
+        wait 20 break
+	clear
+        pomodoro=0
+        echo "Long rest ended"
+        mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
+        read -p "Press enter to continue -> "
+        kill $!
+}
+
+atBeginning () {
+	if [[ -e ~/bin/pomodoroData ]]; then
+		if [[ "$(date +%F)" == "$(cat ~/bin/pomodoroData | head -n 1 | cut -f 2 -d '^')" ]]; then
+			workedMinutes="$(cat ~/bin/pomodoroData | head -n 1 | cut -f 1 -d '^')"
+		else
+			sed -i "1s/.*/0^$(date +%F)/" ~/bin/pomodoroData	
+		fi
+	else
+		echo "0^$(date +%F)" > ~/bin/pomodoroData
+		echo "reminder" >> ~/bin/pomodoroData
+	fi
+
+	reminder="$(cat ~/bin/pomodoroData | tail -n 1)"
+
+	beginning=false
+}
+
+beginning=true
+pomodoro=0
+workedMinutes=0
+
+while true; do
+	if $beginning; then
+		atBeginning
+	fi
+        startPomodoro
+        if [[ "$workedMinutes" -ge 425 ]]; then
+                echo -e "${GREEN}Hours worked completed${NC}"
+                mpv ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
+                read -p "Press enter to continue -> "
+                kill $!
+        fi
+        if [[ "$pomodoro" -ne 4 ]]; then
+               startBreak 
+        else
+               startLongBreak 
+        fi
+done
