@@ -33,7 +33,12 @@ startPomodoro () {
         workedMinutes=$((workedMinutes + 25))
 	perl -p -i -e "s/^\d{1,4}(?=\^\d{4}-\d{2}-\d{2}$)/$workedMinutes/" ~/bin/pomodoroData
         echo "Pomodoro ended"
-        mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
+	# if headphones are unpluged (https://askubuntu.com/questions/133809/mute-sound-on-headphone-unplug)
+	if [[ "$(cat '/proc/asound/card0/codec#0' | head -n 140 | tail -n 1 | grep -Po 'OUT')" == "OUT" ]]; then
+		mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
+	else
+		mpv --volume 50 ~/Música/bash/pomodoro.mp3 &> /dev/null &
+	fi
 	reminder=""
 	while [[ ! "$reminder" =~ ^.{5,}$ ]]; do
 		read -p "Please enter a reminder and press enter -> " reminder
@@ -54,7 +59,11 @@ startBreak () {
         wait 5 break
 	clear
         echo "Break ended"
-        mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
+	if [[ "$(cat '/proc/asound/card0/codec#0' | head -n 140 | tail -n 1 | grep -Po 'OUT')" == "OUT" ]]; then
+		mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
+	else
+		mpv --volume 50 ~/Música/bash/pomodoro.mp3 &> /dev/null &
+	fi
         read -p "Press enter to continue -> "
         kill $!
 }
@@ -65,7 +74,11 @@ startLongBreak () {
 	clear
         pomodoro=0
         echo "Long rest ended"
-        mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
+	if [[ "$(cat '/proc/asound/card0/codec#0' | head -n 140 | tail -n 1 | grep -Po 'OUT')" == "OUT" ]]; then
+		mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
+	else
+		mpv --volume 50 ~/Música/bash/pomodoro.mp3 &> /dev/null &
+	fi
         read -p "Press enter to continue -> "
         kill $!
 }
@@ -98,7 +111,11 @@ while true; do
         startPomodoro
         if [[ "$workedMinutes" -ge 425 ]]; then
                 echo -e "${GREEN}Hours worked completed${NC}"
-                mpv ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
+		if [[ "$(cat '/proc/asound/card0/codec#0' | head -n 140 | tail -n 1 | grep -Po 'OUT')" == "OUT" ]]; then
+			mpv ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
+		else
+			mpv --volume 50 ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
+		fi
                 read -p "Press enter to continue -> "
                 kill $!
         fi
