@@ -1,5 +1,28 @@
 #!/bin/bash
 
+# It is neccesary acpid
+
+if [[ "$(ps aux | grep -P acpi_listen | grep -Pv 'grep')" == "" ]]; then
+	systemctl start acpid.service
+	acpi_listen | grep -Pi 'headphone' > ~/tmp/headphonesStatus &
+fi
+
+playMusic () {
+	if [[ "$1" == pomodoro ]]; then
+		if [[ "$(cat ~/tmp/headphonesStatus | tail -n 1 | grep -P 'unplug')" != "" ]]; then
+			mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
+		else
+			mpv --volume 50 ~/Música/bash/pomodoro.mp3 &> /dev/null &
+		fi
+	else if [[ "$1" == pomodoroOver ]]; then
+		if [[ "$(cat ~/tmp/headphonesStatus | tail -n 1 | grep -P 'unplug')" != "" ]]; then
+			mpv ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
+		else
+			mpv --volume 50 ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
+		fi
+	fi
+}
+
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 ORANGE='\033[0;33m'
@@ -33,12 +56,7 @@ startPomodoro () {
         workedMinutes=$((workedMinutes + 25))
 	perl -p -i -e "s/^\d{1,4}(?=\^\d{4}-\d{2}-\d{2}$)/$workedMinutes/" ~/bin/pomodoroData
         echo "Pomodoro ended"
-	# if headphones are unpluged (https://askubuntu.com/questions/133809/mute-sound-on-headphone-unplug)
-	if [[ "$(cat '/proc/asound/card0/codec#0' | head -n 140 | tail -n 1 | grep -Po 'OUT')" == "OUT" ]]; then
-		mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
-	else
-		mpv --volume 50 ~/Música/bash/pomodoro.mp3 &> /dev/null &
-	fi
+	playMusic pomodoro
 	reminder=""
 	while [[ ! "$reminder" =~ ^.{5,}$ ]]; do
 		read -p "Please enter a reminder and press enter -> " reminder
@@ -59,11 +77,7 @@ startBreak () {
         wait 5 break
 	clear
         echo "Break ended"
-	if [[ "$(cat '/proc/asound/card0/codec#0' | head -n 140 | tail -n 1 | grep -Po 'OUT')" == "OUT" ]]; then
-		mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
-	else
-		mpv --volume 50 ~/Música/bash/pomodoro.mp3 &> /dev/null &
-	fi
+	playMusic pomodoro
         read -p "Press enter to continue -> "
         kill $!
 }
@@ -74,11 +88,7 @@ startLongBreak () {
 	clear
         pomodoro=0
         echo "Long rest ended"
-	if [[ "$(cat '/proc/asound/card0/codec#0' | head -n 140 | tail -n 1 | grep -Po 'OUT')" == "OUT" ]]; then
-		mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
-	else
-		mpv --volume 50 ~/Música/bash/pomodoro.mp3 &> /dev/null &
-	fi
+	playMusic pomodoro
         read -p "Press enter to continue -> "
         kill $!
 }
@@ -111,11 +121,7 @@ while true; do
         startPomodoro
         if [[ "$workedMinutes" -ge 425 ]]; then
                 echo -e "${GREEN}Hours worked completed${NC}"
-		if [[ "$(cat '/proc/asound/card0/codec#0' | head -n 140 | tail -n 1 | grep -Po 'OUT')" == "OUT" ]]; then
-			mpv ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
-		else
-			mpv --volume 50 ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
-		fi
+		playMusic pomodoroOver
                 read -p "Press enter to continue -> "
                 kill $!
         fi
