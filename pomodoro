@@ -3,19 +3,20 @@
 # It is neccesary acpid
 
 if [[ "$(ps aux | grep -P acpi_listen | grep -Pv 'grep')" == "" ]]; then
-	systemctl start acpid.service
-	acpi_listen | grep -Pi 'headphone' > ~/tmp/headphonesStatus &
+	echo -n "" > ~/tmp/headphonesStatus
+	sudo systemctl start acpid.service
+	acpi_listen >> ~/tmp/headphonesStatus &
 fi
 
 playMusic () {
 	if [[ "$1" == pomodoro ]]; then
-		if [[ "$(cat ~/tmp/headphonesStatus | tail -n 1 | grep -P 'unplug')" != "" ]]; then
+		if [[ "$(cat ~/tmp/headphonesStatus | grep -P 'headphone' | tail -n 1 | grep -P 'unplug')" != "" ]]; then
 			mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
 		else
 			mpv --volume 50 ~/Música/bash/pomodoro.mp3 &> /dev/null &
 		fi
 	else if [[ "$1" == pomodoroOver ]]; then
-		if [[ "$(cat ~/tmp/headphonesStatus | tail -n 1 | grep -P 'unplug')" != "" ]]; then
+		if [[ "$(cat ~/tmp/headphonesStatus | grep -P 'headphone' | tail -n 1 | grep -P 'unplug')" != "" ]]; then
 			mpv ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
 		else
 			mpv --volume 50 ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
