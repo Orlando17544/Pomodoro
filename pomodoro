@@ -15,7 +15,7 @@ playMusic () {
 		else
 			mpv --volume 50 ~/Música/bash/pomodoro.mp3 &> /dev/null &
 		fi
-	else if [[ "$1" == pomodoroOver ]]; then
+	elif [[ "$1" == pomodoroOver ]]; then
 		if [[ "$(cat ~/tmp/headphonesStatus | grep -P 'headphone' | tail -n 1 | grep -P 'unplug')" != "" ]]; then
 			mpv ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
 		else
