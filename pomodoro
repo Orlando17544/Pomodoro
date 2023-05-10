@@ -13,13 +13,13 @@ playMusic () {
 		if [[ "$(cat ~/tmp/headphonesStatus | grep -P 'headphone' | tail -n 1 | grep -P 'unplug')" != "" ]]; then
 			mpv ~/Música/bash/pomodoro.mp3 &> /dev/null &
 		else
-			mpv --volume 50 ~/Música/bash/pomodoro.mp3 &> /dev/null &
+			mpv --volume=50 ~/Música/bash/pomodoro.mp3 &> /dev/null &
 		fi
 	elif [[ "$1" == pomodoroOver ]]; then
 		if [[ "$(cat ~/tmp/headphonesStatus | grep -P 'headphone' | tail -n 1 | grep -P 'unplug')" != "" ]]; then
 			mpv ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
 		else
-			mpv --volume 50 ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
+			mpv --volume=50 ~/Música/bash/pomodoroOver.mp3 &> /dev/null &
 		fi
 	fi
 }
